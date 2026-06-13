@@ -1,21 +1,24 @@
 <!DOCTYPE html>
-<html lang="ja"><head>
+<html lang="ja">
+<head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>チャッピー航海術OS Ver2.5</title>
+<title>チャッピー航海術OS Ver3.0</title>
 <style>
-body{font-family:-apple-system,sans-serif;margin:12px}
+body{font-family:-apple-system,sans-serif;max-width:900px;margin:auto;padding:12px}
 .card{border:1px solid #ccc;border-radius:12px;padding:12px;margin:10px 0}
-input,select,button{width:100%;padding:8px;margin:4px 0}
-.tabs button{width:24%;display:inline-block}
+input,select,button{width:100%;padding:8px;margin:4px 0;box-sizing:border-box}
 .big{font-size:24px;font-weight:bold}
-</style></head><body>
-
-<h1>🚢 チャッピー航海術OS Ver2.5</h1>
+.good{color:green}.warn{color:orange}.bad{color:red}
+</style>
+</head>
+<body>
+<h1>🚢 チャッピー航海術OS Ver3.0</h1>
 
 <div class="card">
 <h3>総合ダッシュボード</h3>
 <div id="dashboard" class="big">待機中</div>
+<div id="crew"></div>
 </div>
 
 <div class="card">
@@ -33,15 +36,7 @@ input,select,button{width:100%;padding:8px;margin:4px 0}
 </div>
 
 <div class="card">
-<h3>フィボナッチ</h3>
-<input id="fh" type="number" placeholder="高値">
-<input id="fl" type="number" placeholder="安値">
-<button onclick="fib()">計算</button>
-<div id="fibOut"></div>
-</div>
-
-<div class="card">
-<h3>標準ピボット</h3>
+<h3>標準ピボット（R3/S3対応）</h3>
 <input id="ph" type="number" placeholder="高値">
 <input id="pl" type="number" placeholder="安値">
 <input id="pc" type="number" placeholder="終値">
@@ -50,65 +45,82 @@ input,select,button{width:100%;padding:8px;margin:4px 0}
 </div>
 
 <div class="card">
-<h3>トレード統計</h3>
-<input id="wins" type="number" placeholder="勝ち回数">
-<input id="losses" type="number" placeholder="負け回数">
-<input id="avgwin" type="number" value="2" placeholder="平均利益R">
-<input id="avgloss" type="number" value="1" placeholder="平均損失R">
-<button onclick="stats()">統計計算</button>
-<div id="statsOut"></div>
-</div>
-
-<div class="card">
-<h3>会議ログ</h3>
-<input id="logtxt" placeholder="会議メモ">
-<button onclick="saveLog()">保存</button>
-<ul id="logs"></ul>
+<h3>値幅 → 円換算</h3>
+<input id="symbol" placeholder="銘柄名（Gold/BTC/日経など）">
+<input id="range" type="number" placeholder="値幅">
+<input id="lot" type="number" step="0.01" placeholder="ロット">
+<input id="usdjp" type="number" value="160" placeholder="ドル円">
+<button onclick="yenCalc()">計算</button>
+<div id="yenOut"></div>
 </div>
 
 <script>
+const ids=["weekly","h4","h1","entry","sl","tp","balance","risk","ph","pl","pc","symbol","range","lot","usdjp"];
+function saveData(){
+ ids.forEach(id=>localStorage.setItem("v30_"+id,document.getElementById(id).value));
+}
+function loadData(){
+ ids.forEach(id=>{
+  const v=localStorage.getItem("v30_"+id);
+  if(v!==null) document.getElementById(id).value=v;
+ });
+}
+ids.forEach(id=>{
+ window.addEventListener("load",()=>{
+   document.getElementById(id).addEventListener("input",saveData);
+ });
+});
+
 function judge(){
  let s=+weekly.value + +h4.value + +h1.value;
  let e=+entry.value, slv=+sl.value, tpv=+tp.value;
- let rr=Math.abs(tpv-e)/Math.abs(e-slv);
+ let rr=Math.abs(tpv-e)/Math.max(0.0001,Math.abs(e-slv));
  let riskMoney=(+balance.value)*(+risk.value)/100;
- let j='🟥待て';
- if(s>=4&&rr>=1.5) j='🟨慎重';
- if(s>=7&&rr>=2) j='🟩今だ';
- judgeOut.innerHTML=`RR:${rr.toFixed(2)}<br>許容損失:${riskMoney.toLocaleString()}円<br>スコア:${s}<br>${j}`;
- dashboard.innerHTML=j;
-}
 
-function fib(){
- let h=+fh.value,l=+fl.value,d=h-l;
- fibOut.innerHTML=`38.2:${(h-d*0.382).toFixed(2)}<br>50:${(h-d*0.5).toFixed(2)}<br>61.8:${(h-d*0.618).toFixed(2)}<br>78.6:${(h-d*0.786).toFixed(2)}`;
+ let rrText="🔴 RR不足";
+ if(rr>=1.5) rrText="🟡 RR合格";
+ if(rr>=2) rrText="🟢 RR優秀";
+
+ let result="🟥待て";
+ let crewMsg="船長、霧が濃い。港で待機だ。";
+
+ if(s>=4 && rr>=1.5){
+   result="🟨慎重";
+   crewMsg="波は高い。小さく進もう。";
+ }
+ if(s>=7 && rr>=2){
+   result="🟩今だ";
+   crewMsg="追い風確認！出港準備完了！";
+ }
+
+ if(rr<1.5){
+   result="🟥待て";
+   crewMsg="RR不足。剣を鞘に収めよう。";
+ }
+
+ judgeOut.innerHTML=`RR:${rr.toFixed(2)}<br>${rrText}<br>許容損失:${riskMoney.toLocaleString()}円<br>スコア:${s}`;
+ dashboard.innerHTML=result;
+ crew.innerHTML=crewMsg;
 }
 
 function pivot(){
  let h=+ph.value,l=+pl.value,c=+pc.value;
- let p=(h+l+c)/3,r1=2*p-l,s1=2*p-h,r2=p+(h-l),s2=p-(h-l);
- pivotOut.innerHTML=`P:${p.toFixed(2)}<br>R1:${r1.toFixed(2)} S1:${s1.toFixed(2)}<br>R2:${r2.toFixed(2)} S2:${s2.toFixed(2)}`;
+ let p=(h+l+c)/3;
+ let r1=2*p-l,s1=2*p-h;
+ let r2=p+(h-l),s2=p-(h-l);
+ let r3=h+2*(p-l),s3=l-2*(h-p);
+ pivotOut.innerHTML=`P:${p.toFixed(2)}<br>R1:${r1.toFixed(2)}<br>R2:${r2.toFixed(2)}<br>R3:${r3.toFixed(2)}<br>S1:${s1.toFixed(2)}<br>S2:${s2.toFixed(2)}<br>S3:${s3.toFixed(2)}`;
 }
 
-function stats(){
- let w=+wins.value,l=+losses.value;
- let wr=(w/(w+l))*100;
- let pf=(w*(+avgwin.value))/Math.max(1,l*(+avgloss.value));
- let exp=(wr/100)*(+avgwin.value)-((100-wr)/100)*(+avgloss.value);
- statsOut.innerHTML=`勝率:${wr.toFixed(1)}%<br>PF:${pf.toFixed(2)}<br>期待値:${exp.toFixed(2)}R`;
+function yenCalc(){
+ let range=+document.getElementById("range").value;
+ let lot=+document.getElementById("lot").value;
+ let usd=+document.getElementById("usdjp").value;
+ let yen=range*lot*100*usd;
+ yenOut.innerHTML=`銘柄:${symbol.value}<br>概算損益:${Math.round(yen).toLocaleString()}円`;
 }
 
-function saveLog(){
- let arr=JSON.parse(localStorage.getItem('chappylogs')||'[]');
- arr.push(logtxt.value);
- localStorage.setItem('chappylogs',JSON.stringify(arr));
- loadLogs();
- logtxt.value='';
-}
-function loadLogs(){
- let arr=JSON.parse(localStorage.getItem('chappylogs')||'[]');
- logs.innerHTML=arr.map(x=>'<li>'+x+'</li>').join('');
-}
-loadLogs();
+loadData();
 </script>
-</body></html>
+</body>
+</html>
