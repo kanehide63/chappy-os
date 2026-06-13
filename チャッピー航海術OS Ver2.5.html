@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ja"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>チャッピー航海術OS Ver2.5</title>
+<style>
+body{font-family:-apple-system,sans-serif;margin:12px}
+.card{border:1px solid #ccc;border-radius:12px;padding:12px;margin:10px 0}
+input,select,button{width:100%;padding:8px;margin:4px 0}
+.tabs button{width:24%;display:inline-block}
+.big{font-size:24px;font-weight:bold}
+</style></head><body>
+
+<h1>🚢 チャッピー航海術OS Ver2.5</h1>
+
+<div class="card">
+<h3>総合ダッシュボード</h3>
+<div id="dashboard" class="big">待機中</div>
+</div>
+
+<div class="card">
+<h3>環境認識・判定</h3>
+<select id="weekly"><option value="3">週足 上昇</option><option value="1">中立</option><option value="-3">下降</option></select>
+<select id="h4"><option value="2">H4 強気</option><option value="0">中立</option><option value="-2">弱気</option></select>
+<select id="h1"><option value="2">H1 高値更新</option><option value="0">レンジ</option><option value="-2">安値更新</option></select>
+<input id="entry" type="number" placeholder="エントリー">
+<input id="sl" type="number" placeholder="損切り">
+<input id="tp" type="number" placeholder="利確">
+<input id="balance" type="number" value="1000000" placeholder="残高">
+<input id="risk" type="number" value="1" placeholder="リスク%">
+<button onclick="judge()">判定</button>
+<div id="judgeOut"></div>
+</div>
+
+<div class="card">
+<h3>フィボナッチ</h3>
+<input id="fh" type="number" placeholder="高値">
+<input id="fl" type="number" placeholder="安値">
+<button onclick="fib()">計算</button>
+<div id="fibOut"></div>
+</div>
+
+<div class="card">
+<h3>標準ピボット</h3>
+<input id="ph" type="number" placeholder="高値">
+<input id="pl" type="number" placeholder="安値">
+<input id="pc" type="number" placeholder="終値">
+<button onclick="pivot()">計算</button>
+<div id="pivotOut"></div>
+</div>
+
+<div class="card">
+<h3>トレード統計</h3>
+<input id="wins" type="number" placeholder="勝ち回数">
+<input id="losses" type="number" placeholder="負け回数">
+<input id="avgwin" type="number" value="2" placeholder="平均利益R">
+<input id="avgloss" type="number" value="1" placeholder="平均損失R">
+<button onclick="stats()">統計計算</button>
+<div id="statsOut"></div>
+</div>
+
+<div class="card">
+<h3>会議ログ</h3>
+<input id="logtxt" placeholder="会議メモ">
+<button onclick="saveLog()">保存</button>
+<ul id="logs"></ul>
+</div>
+
+<script>
+function judge(){
+ let s=+weekly.value + +h4.value + +h1.value;
+ let e=+entry.value, slv=+sl.value, tpv=+tp.value;
+ let rr=Math.abs(tpv-e)/Math.abs(e-slv);
+ let riskMoney=(+balance.value)*(+risk.value)/100;
+ let j='🟥待て';
+ if(s>=4&&rr>=1.5) j='🟨慎重';
+ if(s>=7&&rr>=2) j='🟩今だ';
+ judgeOut.innerHTML=`RR:${rr.toFixed(2)}<br>許容損失:${riskMoney.toLocaleString()}円<br>スコア:${s}<br>${j}`;
+ dashboard.innerHTML=j;
+}
+
+function fib(){
+ let h=+fh.value,l=+fl.value,d=h-l;
+ fibOut.innerHTML=`38.2:${(h-d*0.382).toFixed(2)}<br>50:${(h-d*0.5).toFixed(2)}<br>61.8:${(h-d*0.618).toFixed(2)}<br>78.6:${(h-d*0.786).toFixed(2)}`;
+}
+
+function pivot(){
+ let h=+ph.value,l=+pl.value,c=+pc.value;
+ let p=(h+l+c)/3,r1=2*p-l,s1=2*p-h,r2=p+(h-l),s2=p-(h-l);
+ pivotOut.innerHTML=`P:${p.toFixed(2)}<br>R1:${r1.toFixed(2)} S1:${s1.toFixed(2)}<br>R2:${r2.toFixed(2)} S2:${s2.toFixed(2)}`;
+}
+
+function stats(){
+ let w=+wins.value,l=+losses.value;
+ let wr=(w/(w+l))*100;
+ let pf=(w*(+avgwin.value))/Math.max(1,l*(+avgloss.value));
+ let exp=(wr/100)*(+avgwin.value)-((100-wr)/100)*(+avgloss.value);
+ statsOut.innerHTML=`勝率:${wr.toFixed(1)}%<br>PF:${pf.toFixed(2)}<br>期待値:${exp.toFixed(2)}R`;
+}
+
+function saveLog(){
+ let arr=JSON.parse(localStorage.getItem('chappylogs')||'[]');
+ arr.push(logtxt.value);
+ localStorage.setItem('chappylogs',JSON.stringify(arr));
+ loadLogs();
+ logtxt.value='';
+}
+function loadLogs(){
+ let arr=JSON.parse(localStorage.getItem('chappylogs')||'[]');
+ logs.innerHTML=arr.map(x=>'<li>'+x+'</li>').join('');
+}
+loadLogs();
+</script>
+</body></html>
