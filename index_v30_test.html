@@ -1,1 +1,126 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>チャッピー航海術OS Ver3.0</title>
+<style>
+body{font-family:-apple-system,sans-serif;max-width:900px;margin:auto;padding:12px}
+.card{border:1px solid #ccc;border-radius:12px;padding:12px;margin:10px 0}
+input,select,button{width:100%;padding:8px;margin:4px 0;box-sizing:border-box}
+.big{font-size:24px;font-weight:bold}
+.good{color:green}.warn{color:orange}.bad{color:red}
+</style>
+</head>
+<body>
+<h1>🚢 チャッピー航海術OS Ver3.0</h1>
 
+<div class="card">
+<h3>総合ダッシュボード</h3>
+<div id="dashboard" class="big">待機中</div>
+<div id="crew"></div>
+</div>
+
+<div class="card">
+<h3>環境認識・判定</h3>
+<select id="weekly"><option value="3">週足 上昇</option><option value="1">中立</option><option value="-3">下降</option></select>
+<select id="h4"><option value="2">H4 強気</option><option value="0">中立</option><option value="-2">弱気</option></select>
+<select id="h1"><option value="2">H1 高値更新</option><option value="0">レンジ</option><option value="-2">安値更新</option></select>
+<input id="entry" type="number" placeholder="エントリー">
+<input id="sl" type="number" placeholder="損切り">
+<input id="tp" type="number" placeholder="利確">
+<input id="balance" type="number" value="1000000" placeholder="残高">
+<input id="risk" type="number" value="1" placeholder="リスク%">
+<button onclick="judge()">判定</button>
+<div id="judgeOut"></div>
+</div>
+
+<div class="card">
+<h3>標準ピボット（R3/S3対応）</h3>
+<input id="ph" type="number" placeholder="高値">
+<input id="pl" type="number" placeholder="安値">
+<input id="pc" type="number" placeholder="終値">
+<button onclick="pivot()">計算</button>
+<div id="pivotOut"></div>
+</div>
+
+<div class="card">
+<h3>値幅 → 円換算</h3>
+<input id="symbol" placeholder="銘柄名（Gold/BTC/日経など）">
+<input id="range" type="number" placeholder="値幅">
+<input id="lot" type="number" step="0.01" placeholder="ロット">
+<input id="usdjp" type="number" value="160" placeholder="ドル円">
+<button onclick="yenCalc()">計算</button>
+<div id="yenOut"></div>
+</div>
+
+<script>
+const ids=["weekly","h4","h1","entry","sl","tp","balance","risk","ph","pl","pc","symbol","range","lot","usdjp"];
+function saveData(){
+ ids.forEach(id=>localStorage.setItem("v30_"+id,document.getElementById(id).value));
+}
+function loadData(){
+ ids.forEach(id=>{
+  const v=localStorage.getItem("v30_"+id);
+  if(v!==null) document.getElementById(id).value=v;
+ });
+}
+ids.forEach(id=>{
+ window.addEventListener("load",()=>{
+   document.getElementById(id).addEventListener("input",saveData);
+ });
+});
+
+function judge(){
+ let s=+weekly.value + +h4.value + +h1.value;
+ let e=+entry.value, slv=+sl.value, tpv=+tp.value;
+ let rr=Math.abs(tpv-e)/Math.max(0.0001,Math.abs(e-slv));
+ let riskMoney=(+balance.value)*(+risk.value)/100;
+
+ let rrText="🔴 RR不足";
+ if(rr>=1.5) rrText="🟡 RR合格";
+ if(rr>=2) rrText="🟢 RR優秀";
+
+ let result="🟥待て";
+ let crewMsg="船長、霧が濃い。港で待機だ。";
+
+ if(s>=4 && rr>=1.5){
+   result="🟨慎重";
+   crewMsg="波は高い。小さく進もう。";
+ }
+ if(s>=7 && rr>=2){
+   result="🟩今だ";
+   crewMsg="追い風確認！出港準備完了！";
+ }
+
+ if(rr<1.5){
+   result="🟥待て";
+   crewMsg="RR不足。剣を鞘に収めよう。";
+ }
+
+ judgeOut.innerHTML=`RR:${rr.toFixed(2)}<br>${rrText}<br>許容損失:${riskMoney.toLocaleString()}円<br>スコア:${s}`;
+ dashboard.innerHTML=result;
+ crew.innerHTML=crewMsg;
+}
+
+function pivot(){
+ let h=+ph.value,l=+pl.value,c=+pc.value;
+ let p=(h+l+c)/3;
+ let r1=2*p-l,s1=2*p-h;
+ let r2=p+(h-l),s2=p-(h-l);
+ let r3=h+2*(p-l),s3=l-2*(h-p);
+ pivotOut.innerHTML=`P:${p.toFixed(2)}<br>R1:${r1.toFixed(2)}<br>R2:${r2.toFixed(2)}<br>R3:${r3.toFixed(2)}<br>S1:${s1.toFixed(2)}<br>S2:${s2.toFixed(2)}<br>S3:${s3.toFixed(2)}`;
+}
+
+function yenCalc(){
+ let range=+document.getElementById("range").value;
+ let lot=+document.getElementById("lot").value;
+ let usd=+document.getElementById("usdjp").value;
+ let yen=range*lot*100*usd;
+ yenOut.innerHTML=`銘柄:${symbol.value}<br>概算損益:${Math.round(yen).toLocaleString()}円`;
+}
+
+loadData();
+</script>
+</body>
+</html>
