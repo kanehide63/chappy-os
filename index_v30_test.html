@@ -4,12 +4,39 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>チャッピー航海術OS Ver3.0【リスク管理ツール】</title>
+
 <style>
-body{font-family:-apple-system,sans-serif;max-width:900px;margin:auto;padding:12px}
-.card{border:1px solid #ccc;border-radius:12px;padding:12px;margin:10px 0}
-input,select,button{width:100%;padding:8px;margin:4px 0;box-sizing:border-box}
-.big{font-size:24px;font-weight:bold}
-.good{color:green}.warn{color:orange}.bad{color:red}
+body{
+    font-family:-apple-system,sans-serif;
+    max-width:900px;
+    margin:auto;
+    padding:12px;
+}
+.card{
+    border:1px solid #ccc;
+    border-radius:12px;
+    padding:12px;
+    margin:10px 0;
+}
+label{
+    display:block;
+    font-weight:bold;
+    margin-top:8px;
+    margin-bottom:2px;
+}
+input,select,button{
+    width:100%;
+    padding:8px;
+    margin:4px 0;
+    box-sizing:border-box;
+}
+.big{
+    font-size:24px;
+    font-weight:bold;
+}
+.good{color:green}
+.warn{color:orange}
+.bad{color:red}
 </style>
 </head>
 <body>
@@ -23,53 +50,87 @@ input,select,button{width:100%;padding:8px;margin:4px 0;box-sizing:border-box}
 
 <div class="card">
 <h3>環境認識・判定</h3>
-<select id="weekly"><option value="3">週足 上昇</option><option value="1">中立</option><option value="-3">下降</option></select>
-<select id="h4"><option value="2">H4 強気</option><option value="0">中立</option><option value="-2">弱気</option></select>
-<select id="h1"><option value="2">H1 高値更新</option><option value="0">レンジ</option><option value="-2">安値更新</option></select>
+
+<label>週足</label>
+<select id="weekly">
+<option value="3">週足 上昇</option>
+<option value="1">中立</option>
+<option value="-3">下降</option>
+</select>
+
+<label>H4</label>
+<select id="h4">
+<option value="2">H4 強気</option>
+<option value="0">中立</option>
+<option value="-2">弱気</option>
+</select>
+
+<label>H1</label>
+<select id="h1">
+<option value="2">H1 高値更新</option>
+<option value="0">レンジ</option>
+<option value="-2">安値更新</option>
+</select>
+
+<label>エントリー</label>
 <input id="entry" type="number" placeholder="エントリー">
+
+<label>損切り</label>
 <input id="sl" type="number" placeholder="損切り">
+
+<label>利確</label>
 <input id="tp" type="number" placeholder="利確">
+
+<label>残高</label>
 <input id="balance" type="number" value="1000000" placeholder="残高">
-<input id="risk" type="number" value="1" placeholder="リスク%">
+
+<label>リスク％</label>
+<input id="risk" type="number" value="1" placeholder="リスク％">
+
 <button onclick="judge()">判定</button>
 <div id="judgeOut"></div>
 </div>
 
 <div class="card">
 <h3>標準ピボット（R3/S3対応）</h3>
+
+<label>高値</label>
 <input id="ph" type="number" placeholder="高値">
+
+<label>安値</label>
 <input id="pl" type="number" placeholder="安値">
+
+<label>終値</label>
 <input id="pc" type="number" placeholder="終値">
+
 <button onclick="pivot()">計算</button>
 <div id="pivotOut"></div>
 </div>
 
 <div class="card">
 <h3>値幅 → 円換算</h3>
+
+<label>銘柄名</label>
 <input id="symbol" placeholder="銘柄名（Gold/BTC/日経など）">
+
+<label>値幅</label>
 <input id="range" type="number" placeholder="値幅">
+
+<label>ロット</label>
 <input id="lot" type="number" step="0.01" placeholder="ロット">
+
+<label>ドル円</label>
 <input id="usdjp" type="number" value="160" placeholder="ドル円">
+
 <button onclick="yenCalc()">計算</button>
 <div id="yenOut"></div>
 </div>
 
 <script>
 const ids=["weekly","h4","h1","entry","sl","tp","balance","risk","ph","pl","pc","symbol","range","lot","usdjp"];
-function saveData(){
- ids.forEach(id=>localStorage.setItem("v30_"+id,document.getElementById(id).value));
-}
-function loadData(){
- ids.forEach(id=>{
-  const v=localStorage.getItem("v30_"+id);
-  if(v!==null) document.getElementById(id).value=v;
- });
-}
-ids.forEach(id=>{
- window.addEventListener("load",()=>{
-   document.getElementById(id).addEventListener("input",saveData);
- });
-});
+function saveData(){ids.forEach(id=>localStorage.setItem("v30_"+id,document.getElementById(id).value));}
+function loadData(){ids.forEach(id=>{const v=localStorage.getItem("v30_"+id);if(v!==null) document.getElementById(id).value=v;});}
+ids.forEach(id=>{window.addEventListener("load",()=>{document.getElementById(id).addEventListener("input",saveData);});});
 
 function judge(){
  let s=+weekly.value + +h4.value + +h1.value;
@@ -84,19 +145,9 @@ function judge(){
  let result="🟥待て";
  let crewMsg="船長、霧が濃い。港で待機だ。";
 
- if(s>=4 && rr>=1.5){
-   result="🟨慎重";
-   crewMsg="波は高い。小さく進もう。";
- }
- if(s>=7 && rr>=2){
-   result="🟩今だ";
-   crewMsg="追い風確認！出港準備完了！";
- }
-
- if(rr<1.5){
-   result="🟥待て";
-   crewMsg="RR不足。剣を鞘に収めよう。";
- }
+ if(s>=4 && rr>=1.5){result="🟨慎重";crewMsg="波は高い。小さく進もう。";}
+ if(s>=7 && rr>=2){result="🟩今だ";crewMsg="追い風確認！出港準備完了！";}
+ if(rr<1.5){result="🟥待て";crewMsg="RR不足。剣を鞘に収めよう。";}
 
  judgeOut.innerHTML=`RR:${rr.toFixed(2)}<br>${rrText}<br>許容損失:${riskMoney.toLocaleString()}円<br>スコア:${s}`;
  dashboard.innerHTML=result;
@@ -119,7 +170,6 @@ function yenCalc(){
  let yen=range*lot*100*usd;
  yenOut.innerHTML=`銘柄:${symbol.value}<br>概算損益:${Math.round(yen).toLocaleString()}円`;
 }
-
 loadData();
 </script>
 </body>
