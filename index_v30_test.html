@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>チャッピー航海術OS Ver3.0<br>【リスク管理ツール】</title>
+<title>チャッピー航海術OS Ver3.0【リスク管理ツール】</title>
 
 <style>
 body{
@@ -12,8 +12,7 @@ body{
     margin:auto;
     padding:12px;
 }
-    h1{font-size:28px;
-      }
+h1{font-size:28px;}
 .card{
     border:1px solid #ccc;
     border-radius:12px;
@@ -42,8 +41,9 @@ input,select,button{
 </style>
 </head>
 <body>
+
 <h1 style="font-size:20px;">🚢 チャッピー航海術OS Ver3.0</h1>
-    <h2 style="font-size:20px;">【リスク管理ツール】</h2>
+<h2 style="font-size:20px;">【リスク管理ツール】</h2>
 
 <div class="card">
 <h3>総合ダッシュボード</h3>
@@ -132,9 +132,23 @@ input,select,button{
 
 <script>
 const ids=["weekly","h4","h1","entry","sl","tp","balance","risk","ph","pl","pc","symbol","range","lot","usdjp"];
-function saveData(){ids.forEach(id=>localStorage.setItem("v30_"+id,document.getElementById(id).value));}
-function loadData(){ids.forEach(id=>{const v=localStorage.getItem("v30_"+id);if(v!==null) document.getElementById(id).value=v;});}
-ids.forEach(id=>{window.addEventListener("load",()=>{document.getElementById(id).addEventListener("input",saveData);});});
+
+function saveData(){
+    ids.forEach(id=>localStorage.setItem("v30_"+id,document.getElementById(id).value));
+}
+
+function loadData(){
+    ids.forEach(id=>{
+        const v=localStorage.getItem("v30_"+id);
+        if(v!==null) document.getElementById(id).value=v;
+    });
+}
+
+window.addEventListener("load",()=>{
+    ids.forEach(id=>{
+        document.getElementById(id).addEventListener("input",saveData);
+    });
+});
 
 function judge(){
  let s=+weekly.value + +h4.value + +h1.value;
@@ -153,9 +167,9 @@ function judge(){
  if(s>=7 && rr>=2){result="🟩今だ";crewMsg="追い風確認！出港準備完了！";}
  if(rr<1.5){result="🟥待て";crewMsg="RR不足。剣を鞘に収めよう。";}
 
- judgeOut.innerHTML=`RR:${rr.toFixed(2)}<br>${rrText}<br>許容損失:${riskMoney.toLocaleString()}円<br>スコア:${s}`;
- dashboard.innerHTML=result;
- crew.innerHTML=crewMsg;
+ document.getElementById("judgeOut").innerHTML=`RR:${rr.toFixed(2)}<br>${rrText}<br>許容損失:${riskMoney.toLocaleString()}円<br>スコア:${s}`;
+ document.getElementById("dashboard").innerHTML=result;
+ document.getElementById("crew").innerHTML=crewMsg;
 }
 
 function pivot(){
@@ -164,7 +178,8 @@ function pivot(){
  let r1=2*p-l,s1=2*p-h;
  let r2=p+(h-l),s2=p-(h-l);
  let r3=h+2*(p-l),s3=l-2*(h-p);
- pivotOut.innerHTML=`P:${p.toFixed(2)}<br>R1:${r1.toFixed(2)}<br>R2:${r2.toFixed(2)}<br>R3:${r3.toFixed(2)}<br>S1:${s1.toFixed(2)}<br>S2:${s2.toFixed(2)}<br>S3:${s3.toFixed(2)}`;
+
+ document.getElementById("pivotOut").innerHTML=`P:${p.toFixed(2)}<br>R1:${r1.toFixed(2)}<br>R2:${r2.toFixed(2)}<br>R3:${r3.toFixed(2)}<br>S1:${s1.toFixed(2)}<br>S2:${s2.toFixed(2)}<br>S3:${s3.toFixed(2)}`;
 }
 
 function yenCalc(){
@@ -172,18 +187,41 @@ function yenCalc(){
  let lot=+document.getElementById("lot").value;
  let usd=+document.getElementById("usdjp").value;
  let yen=range*lot*100*usd;
- yenOut.innerHTML=`銘柄:${symbol.value}<br>概算損益:${Math.round(yen).toLocaleString()}円`;
+
+ document.getElementById("yenOut").innerHTML=`銘柄:${document.getElementById("symbol").value}<br>概算損益:${Math.round(yen).toLocaleString()}円`;
 }
+
 function resetAll(){
+
     if(!confirm("全ての入力内容をリセットしますか？")) return;
+
     ids.forEach(id=>{
+
         localStorage.removeItem("v30_"+id);
+
         if(id==="balance"){
             document.getElementById(id).value=1000000;
         }
         else if(id==="risk"){
             document.getElementById(id).value=1;
+        }
+        else if(id==="usdjp"){
+            document.getElementById(id).value=160;
+        }
+        else{
+            document.getElementById(id).value="";
+        }
+    });
+
+    document.getElementById("judgeOut").innerHTML="";
+    document.getElementById("pivotOut").innerHTML="";
+    document.getElementById("yenOut").innerHTML="";
+    document.getElementById("dashboard").innerHTML="待機中";
+    document.getElementById("crew").innerHTML="";
+}
+
 loadData();
 </script>
+
 </body>
 </html>
