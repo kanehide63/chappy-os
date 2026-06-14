@@ -91,6 +91,7 @@ input,select,button{
 <input id="risk" type="number" value="1" placeholder="リスク％">
 
 <button onclick="judge()">判定</button>
+<button onclick="resetAll()">🗑️ 全リセット</button>
 <div id="judgeOut"></div>
 </div>
 
@@ -173,6 +174,15 @@ function yenCalc(){
  let yen=range*lot*100*usd;
  yenOut.innerHTML=`銘柄:${symbol.value}<br>概算損益:${Math.round(yen).toLocaleString()}円`;
 }
+function resetAll(){
+    if(!confirm("全ての入力内容をリセットしますか？")) return;
+    ids.forEach(id=>{
+        localStorage.removeItem("v30_"+id);
+        if(id==="balance"){
+            document.getElementById(id).value=1000000;
+        }
+        else if(id==="risk"){
+            document.getElementById(id).value=1;
 loadData();
 </script>
 </body>
